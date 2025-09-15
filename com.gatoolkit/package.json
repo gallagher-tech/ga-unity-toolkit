@@ -1,0 +1,14 @@
+{
+  "name":"com.ga.toolkit",
+  "version":"0.0.1",
+  "displayName":"GA Unity Toolkit",
+  "description":" GA Unity Toolkit is G&A's in-house C# component system for building interactive experiences in Unity.",
+  "unity":"2022.3",
+  "author":{
+    "name":"GA Tech",
+    "email":"tech@gallagherdesign.com"
+  },
+  "dependencies":{
+    "com.gatoolkit":"https://github.com/gallagher-tech/ga-unity-toolkit.git"
+  }
+}
