@@ -7,5 +7,6 @@
   "author":{
     "name":"GA Tech",
     "email":"tech@gallagherdesign.com"
-  }
+  },
+  "type": "library"
 }
