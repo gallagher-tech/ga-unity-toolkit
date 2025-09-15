@@ -30,7 +30,7 @@ namespace GAToolkit
 
         #endregion 
 
-        public bool isOn { get; set; } 
+        public bool isComponentActive { get; set; } 
 
         #region Life Cycle
 
