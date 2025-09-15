@@ -9,6 +9,6 @@
     "email":"tech@gallagherdesign.com"
   },
   "dependencies":{
-    "com.gatoolkit":"https://github.com/gallagher-tech/ga-unity-toolkit.git"
+    "com.gatoolkit":"https://github.com/gallagher-tech/ga-unity-toolkit.git?path=/com.gatoolkit"
   }
 }
