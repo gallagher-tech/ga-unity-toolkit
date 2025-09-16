@@ -63,7 +63,7 @@ namespace GAToolkit
         public void CheckForUserInput()
         {
 
-            if (!isOn)
+            if (!isComponentActive)
             {
                 return;
             }
