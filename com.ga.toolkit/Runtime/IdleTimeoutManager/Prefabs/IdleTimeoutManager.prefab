@@ -151,7 +151,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   screenInputZoneController: {fileID: 7662362123888810447}
   idleTimer: {fileID: 4050289749881029131}
-  idleCountdownDuration: 10
+  idleCountdownDuration: 0
   onIdleTimerTick:
     m_PersistentCalls:
       m_Calls: []
