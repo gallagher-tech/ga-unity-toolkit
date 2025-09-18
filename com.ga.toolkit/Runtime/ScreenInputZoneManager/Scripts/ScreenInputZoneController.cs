@@ -16,9 +16,18 @@ namespace GAToolkit
 
     public class ScreenInputZoneController : MonoBehaviour
     {
-        
+        public bool isComponentActive { get; set; }
+
+        #region Rect Transform
+
+        private RectTransform rt;
+    
+
+
+        #endregion
+
         #region Raycast Targets
-            public List<RaycastEventGroup> raycastTargetGroups;
+        public List<RaycastEventGroup> raycastTargetGroups;
 
         private Dictionary<GameObject, RaycastEventGroup> triggerObjToOnHitEvent;
 
@@ -29,8 +38,6 @@ namespace GAToolkit
         public UnityEvent<string> onScreenHit;
 
         #endregion 
-
-        public bool isComponentActive { get; set; } 
 
         #region Life Cycle
 
@@ -45,8 +52,15 @@ namespace GAToolkit
             CheckForUserInput();
         }
 
-        #endregion 
+        #endregion
 
+        #region Public API
+        public void SetupRectTransformDimensions(float w, float h)
+        {
+            rt = this.gameObject.GetComponent<RectTransform>();
+            rt.sizeDelta = new Vector2(w, h);
+        }
+        #endregion 
         private void SetupTriggerObjtoEventDictionary()
         {
             triggerObjToOnHitEvent = new Dictionary<GameObject, RaycastEventGroup>();
