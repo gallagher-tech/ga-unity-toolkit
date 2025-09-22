@@ -21,8 +21,6 @@ namespace GAToolkit
         #region Rect Transform
 
         private RectTransform rt;
-    
-
 
         #endregion
 
@@ -48,7 +46,6 @@ namespace GAToolkit
 
         void Update()
         {
-
             CheckForUserInput();
         }
 
@@ -60,7 +57,10 @@ namespace GAToolkit
             rt = this.gameObject.GetComponent<RectTransform>();
             rt.sizeDelta = new Vector2(w, h);
         }
-        #endregion 
+        #endregion
+
+        #region Helpers
+
         private void SetupTriggerObjtoEventDictionary()
         {
             triggerObjToOnHitEvent = new Dictionary<GameObject, RaycastEventGroup>();
@@ -74,7 +74,7 @@ namespace GAToolkit
             }
         }
 
-        public void CheckForUserInput()
+        private void CheckForUserInput()
         {
 
             if (!isComponentActive)
@@ -103,7 +103,6 @@ namespace GAToolkit
 
                 bool hitRaycastTarget = false;
 
-
                 foreach (var raycastResult in raycastResults)
                 {
 
@@ -123,6 +122,8 @@ namespace GAToolkit
             }
         }
 
+        #endregion 
+       
     }
 
 }

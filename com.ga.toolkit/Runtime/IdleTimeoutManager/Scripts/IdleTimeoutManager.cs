@@ -11,6 +11,9 @@ namespace GAToolkit
         public bool isComponentActive { get; set; }
 
         [SerializeField]
+        private bool shouldRestartIdleTimerOnScreenHit = false;
+
+        [SerializeField]
         private ScreenInputZoneController screenInputZoneController;
 
         [SerializeField]
@@ -25,7 +28,6 @@ namespace GAToolkit
 
         void Start()
         {
-            Reset();
 
             isComponentActive = true;
             screenInputZoneController.isComponentActive = true;
@@ -33,7 +35,7 @@ namespace GAToolkit
             idleTimer.onTimerDone.AddListener(OnIdleTimerDoneEmitter);
             idleTimer.SetComponentActive(true);
             idleTimer.SetTimerDuration(idleCountdownDuration);
-            idleTimer.ResetTimer();
+            Reset();
 
         }
 
@@ -50,29 +52,21 @@ namespace GAToolkit
 
 
         #region Public API
-        public void EnableTimeout()
+        public void StartTimeout()
         {
-            Debug.Log("[IdleTimeoutManager] Timeout enabled");
-            idleTimer.ResetTimer();
+            Debug.Log("[IdleTimeoutManager] Timeout started");
+            Reset();
             idleTimer.StartTimer();
         }
-
-        public void DisableTimeout()
+        public void StopTimeout()
         {
-            Debug.Log("[IdleTimeoutManager] Timeout disabled");
+            Debug.Log("[IdleTimeoutManager] Timeout stopped");
             idleTimer.ResetTimer();
         }
         public void Reset()
         {
             Debug.Log("[IdleTimeoutManager]: Resetting");
             idleTimer.ResetTimer();
-        }
-
-        public void OnBackgroundScreenClick(string str)
-        {
-            Debug.Log("[IdleTimeoutManager]: Background Screen Click");
-            Reset();
-            idleTimer.StartTimer();
         }
 
         #endregion
@@ -87,22 +81,6 @@ namespace GAToolkit
         private void OnIdleTimerTickEmitter(float time)
         {
             onIdleTimerTick.Invoke(time);
-        }
-
-        private void KeypressSimulation()
-        {
-            if (Input.GetKeyDown(KeyCode.I))
-            {
-
-                EnableTimeout();
-
-            }
-
-            if (Input.GetKeyDown(KeyCode.R))
-            {
-                Reset();
-            }
-
         }
 
         #endregion
