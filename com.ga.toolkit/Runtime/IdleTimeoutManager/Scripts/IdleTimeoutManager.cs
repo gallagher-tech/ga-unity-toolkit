@@ -11,9 +11,6 @@ namespace GAToolkit
         public bool isComponentActive { get; set; }
 
         [SerializeField]
-        private bool shouldRestartIdleTimerOnScreenHit = false;
-
-        [SerializeField]
         private ScreenInputZoneController screenInputZoneController;
 
         [SerializeField]
