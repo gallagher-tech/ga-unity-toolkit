@@ -52,6 +52,10 @@ namespace GAToolkit
         #endregion
 
         #region Public API
+        public void SetComponentActive(bool isActive)
+        {
+            isComponentActive = isActive;
+        }
         public void SetupRectTransformDimensions(float w, float h)
         {
             rt = this.gameObject.GetComponent<RectTransform>();

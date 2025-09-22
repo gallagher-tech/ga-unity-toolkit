@@ -10,6 +10,8 @@ namespace GAToolkit
     {
         public bool isComponentActive { get; set; }
 
+        public bool showLogs = false;
+
         [SerializeField]
         private ScreenInputZoneController screenInputZoneController;
 
@@ -25,15 +27,8 @@ namespace GAToolkit
 
         void Start()
         {
-
-            isComponentActive = true;
-            screenInputZoneController.isComponentActive = true;
-
             idleTimer.onTimerDone.AddListener(OnIdleTimerDoneEmitter);
-            idleTimer.SetComponentActive(true);
             idleTimer.SetTimerDuration(idleCountdownDuration);
-            Reset();
-
         }
 
         void Update()
@@ -49,20 +44,26 @@ namespace GAToolkit
 
 
         #region Public API
+
+        public void SetComponentActive(bool isActive)
+        {
+            isComponentActive = isActive;
+            screenInputZoneController.SetComponentActive(isActive);
+            idleTimer.SetComponentActive(true);
+            Reset();
+        }
+
         public void StartTimeout()
         {
-            Debug.Log("[IdleTimeoutManager] Timeout started");
             Reset();
             idleTimer.StartTimer();
         }
         public void StopTimeout()
         {
-            Debug.Log("[IdleTimeoutManager] Timeout stopped");
             idleTimer.ResetTimer();
         }
         public void Reset()
         {
-            Debug.Log("[IdleTimeoutManager]: Resetting");
             idleTimer.ResetTimer();
         }
 
@@ -71,7 +72,6 @@ namespace GAToolkit
         #region Helpers
         private void OnIdleTimerDoneEmitter(string str)
         {
-            Debug.Log("Idle Timer done");
             onIdleCountdownDone?.Invoke(str);
         }
 
