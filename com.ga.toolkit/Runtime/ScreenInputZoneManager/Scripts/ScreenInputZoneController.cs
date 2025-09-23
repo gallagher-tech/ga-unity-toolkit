@@ -114,7 +114,7 @@ namespace GAToolkit
 
                     if (triggerObjToOnHitEvent.TryGetValue(raycastResult.gameObject, out var group))
                     {
-                        group.onHit?.Invoke(group.eventInput);
+                        group.onHit?.Invoke(default);
                         hitRaycastTarget = true;
                         break;
                     }
@@ -122,7 +122,7 @@ namespace GAToolkit
 
                 if (!hitRaycastTarget)
                 {
-                    onScreenHit?.Invoke(onScreenEventInput);
+                    onScreenHit?.Invoke(default);
                 }
 
             }
