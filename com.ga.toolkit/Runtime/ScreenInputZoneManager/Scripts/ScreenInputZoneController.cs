@@ -12,7 +12,6 @@ namespace GAToolkit
     {
         public List<GameObject> triggerObjs;          
         public UnityEvent<string> onHit;
-        public string eventInput;
     }
 
     public class ScreenInputZoneController : MonoBehaviour
@@ -35,7 +34,6 @@ namespace GAToolkit
         #region General Screen Hit
 
         public UnityEvent<string> onScreenHit;
-        public string onScreenEventInput;
 
         #endregion 
 
