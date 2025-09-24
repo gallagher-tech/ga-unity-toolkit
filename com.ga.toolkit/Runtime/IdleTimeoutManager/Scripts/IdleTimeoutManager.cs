@@ -49,7 +49,7 @@ namespace GAToolkit
         {
             isComponentActive = isActive;
             screenInputZoneController.SetComponentActive(isActive);
-            idleTimer.SetComponentActive(true);
+            idleTimer.SetComponentActive(isActive);
             Reset();
         }
 
@@ -58,10 +58,12 @@ namespace GAToolkit
             Reset();
             idleTimer.StartTimer();
         }
-        public void StopTimeout()
+        public void StopTimeout(bool shouldDeactivateScreenInputZoneController = false)
         {
             idleTimer.ResetTimer();
+            screenInputZoneController.SetComponentActive(shouldDeactivateScreenInputZoneController);
         }
+
         public void Reset()
         {
             idleTimer.ResetTimer();
