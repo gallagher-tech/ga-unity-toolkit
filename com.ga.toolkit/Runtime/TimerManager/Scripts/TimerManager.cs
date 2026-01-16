@@ -16,10 +16,10 @@ namespace GAToolkit
 
         public bool isRunning {get; set;}
 
-        [SerializeField, ReadOnly]
+        [SerializeField]
         private float countdownDuration;
 
-        [SerializeField, ReadOnly]
+        [SerializeField]
         private float time;
 
         public UnityEvent<float> onTimerTick;
