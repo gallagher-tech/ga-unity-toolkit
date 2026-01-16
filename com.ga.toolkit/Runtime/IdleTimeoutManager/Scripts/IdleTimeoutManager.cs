@@ -71,6 +71,16 @@ namespace GAToolkit
             idleTimer.ResetTimer();
         }
 
+        public void SetTimerDuration(float duration)
+        {
+            if (!idleTimer.isComponentActive || idleTimer.isRunning)
+            {
+                return;
+            }
+            idleCountdownDuration = duration;
+            idleTimer.SetTimerDuration(idleCountdownDuration);
+        }
+
         #endregion
 
         #region Helpers

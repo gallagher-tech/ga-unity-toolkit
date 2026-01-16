@@ -14,12 +14,12 @@ namespace GAToolkit
 
         public bool isComponentActive { get; set; }
 
-        private bool isRunning = false;
+        public bool isRunning {get; set;}
 
-        [SerializeField]
+        [SerializeField, ReadOnly]
         private float countdownDuration;
 
-        [SerializeField]
+        [SerializeField, ReadOnly]
         private float time;
 
         public UnityEvent<float> onTimerTick;
