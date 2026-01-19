@@ -106,7 +106,7 @@ namespace GAToolkit
                 };
 
                 List<RaycastResult> raycastResults = new List<RaycastResult>();
-                EventSystem.current.RaycastAll(eventDataCurrentPosition, raycastResults);
+                EventSystem.current.RaycastAll(pointerData, raycastResults);
 
                 bool hasRegisteredTargets = triggerObjToOnHitEvent.Count > 0;
 
