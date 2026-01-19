@@ -95,18 +95,20 @@ namespace GAToolkit
             
             )
             {
+                
+                Vector2 inputPosition = Input.mousePresent ? 
+                    (Vector2)Input.mousePosition :
+                    (Vector2)Input.GetTouch(0).position; 
+
                 PointerEventData pointerData = new PointerEventData(EventSystem.current)
                 {
-                    position = Input.mousePresent ? (Vector2)Input.mousePosition : (Vector2)Input.GetTouch(0).position
+                    position = inputPosition
                 };
-            
-                PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
-                eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 
                 List<RaycastResult> raycastResults = new List<RaycastResult>();
                 EventSystem.current.RaycastAll(eventDataCurrentPosition, raycastResults);
 
-                bool hitRaycastTarget = false;
+                bool hasRegisteredTargets = triggerObjToOnHitEvent.Count > 0;
 
                 foreach (var raycastResult in raycastResults)
                 {
@@ -114,12 +116,11 @@ namespace GAToolkit
                     if (triggerObjToOnHitEvent.TryGetValue(raycastResult.gameObject, out var group))
                     {
                         group.onHit?.Invoke(default);
-                        hitRaycastTarget = true;
-                        break;
+                        return;
                     }
                 }
 
-                if (!hitRaycastTarget)
+                if ( !hasRegisteredTargets || raycastResults.Count == 0)
                 {
                     onScreenHit?.Invoke(default);
                 }
