@@ -92,23 +92,29 @@ namespace GAToolkit
                 Input.GetMouseButtonDown(1) ||
                 Input.GetMouseButtonDown(2) ||
                 (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began)
-            
+
             )
             {
-                
-                Vector2 inputPosition = Input.mousePresent ? 
-                    (Vector2)Input.mousePosition :
-                    (Vector2)Input.GetTouch(0).position; 
-
                 PointerEventData pointerData = new PointerEventData(EventSystem.current)
                 {
-                    position = inputPosition
+                    position = Input.mousePresent ? (Vector2)Input.mousePosition : (Vector2)Input.GetTouch(0).position
                 };
 
-                List<RaycastResult> raycastResults = new List<RaycastResult>();
-                EventSystem.current.RaycastAll(pointerData, raycastResults);
+                PointerEventData eventDataCurrentPosition = new PointerEventData(EventSystem.current);
+                eventDataCurrentPosition.position = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
 
-                bool hasRegisteredTargets = triggerObjToOnHitEvent.Count > 0;
+                List<RaycastResult> raycastResults = new List<RaycastResult>();
+                EventSystem.current.RaycastAll(eventDataCurrentPosition, raycastResults);
+
+                bool hasTriggerTargets = triggerObjToOnHitEvent!= null && triggerObjToOnHitEvent.Count > 0;
+
+                if (!hasTriggerTargets)
+                {
+                    onScreenHit?.Invoke(default);
+                    return;
+                }
+        
+                bool hitRaycastTarget = false;
 
                 foreach (var raycastResult in raycastResults)
                 {
@@ -116,15 +122,15 @@ namespace GAToolkit
                     if (triggerObjToOnHitEvent.TryGetValue(raycastResult.gameObject, out var group))
                     {
                         group.onHit?.Invoke(default);
-                        return;
+                        hitRaycastTarget = true;
+                        break;
                     }
                 }
 
-                if ( !hasRegisteredTargets || raycastResults.Count == 0)
+                if (!hitRaycastTarget)
                 {
                     onScreenHit?.Invoke(default);
                 }
-
             }
         }
 
