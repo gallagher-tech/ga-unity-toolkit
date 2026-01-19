@@ -55,6 +55,7 @@ namespace GAToolkit
         public void SetComponentActive(bool isActive)
         {
             isComponentActive = isActive;
+            this.enabled = isComponentActive;
         }
         public void SetupRectTransformDimensions(float w, float h)
         {
