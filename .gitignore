@@ -1,1 +1,4 @@
-/Test-Unity-Environment/
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
