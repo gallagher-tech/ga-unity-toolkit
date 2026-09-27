@@ -4,6 +4,10 @@
   "displayName":"GA Unity Toolkit",
   "description":" GA Unity Toolkit is G&A's in-house C# component system for building interactive experiences in Unity.",
   "unity":"6000.3",
+  "dependencies":{
+    "com.unity.inputsystem":"1.7.0",
+    "com.unity.ugui":"2.0.0"
+  },
   "author":{
     "name":"GA Tech",
     "email":"tech@gallagherdesign.com"

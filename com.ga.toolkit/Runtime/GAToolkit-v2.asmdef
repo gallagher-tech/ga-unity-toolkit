@@ -1,7 +1,11 @@
 {
     "name": "GAToolkit-v2",
     "rootNamespace": "",
-    "references": [],
+    "references": [
+        "Unity.InputSystem",
+        "Unity.TextMeshPro",
+        "UnityEngine.UI"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
