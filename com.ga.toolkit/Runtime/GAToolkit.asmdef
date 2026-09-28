@@ -1,5 +1,5 @@
 {
-    "name": "GAToolkit-v2",
+    "name": "GAToolkit",
     "rootNamespace": "",
     "references": [
         "Unity.InputSystem",
