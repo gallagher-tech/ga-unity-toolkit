@@ -1,6 +1,6 @@
 {
   "name":"com.ga.toolkit",
-  "version":"0.0.1",
+  "version":"0.0.2",
   "displayName":"GA Unity Toolkit",
   "description":" GA Unity Toolkit is G&A's in-house C# component system for building interactive experiences in Unity.",
   "unity":"6000.3",
