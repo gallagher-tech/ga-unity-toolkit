@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 
 namespace GAToolkit
 {
@@ -13,7 +14,8 @@ namespace GAToolkit
         public bool showLogs = false;
 
         [SerializeField]
-        private ScreenInputZoneController screenInputZoneController;
+        [FormerlySerializedAs("screenInputZoneController")]
+        private ScreenInputZoneManager screenInputZoneManager;
 
         [SerializeField]
         private TimerManager idleTimer;
@@ -48,22 +50,22 @@ namespace GAToolkit
         public void SetComponentActive(bool isActive)
         {
             isComponentActive = isActive;
-            screenInputZoneController.SetComponentActive(isActive);
+            screenInputZoneManager.SetComponentActive(isActive);
             idleTimer.SetComponentActive(isActive);
             Reset();
         }
 
-        public void StartTimeout(bool shouldActivateScreenInputZoneController = true)
+        public void StartTimeout(bool shouldActivateInputZones = true)
         {
             Reset();
             idleTimer.StartTimer();
-            screenInputZoneController.SetComponentActive(shouldActivateScreenInputZoneController);
+            screenInputZoneManager.SetComponentActive(shouldActivateInputZones);
 
         }
-        public void StopTimeout(bool shouldDeactivateScreenInputZoneController = false)
+        public void StopTimeout(bool shouldDeactivateInputZones = false)
         {
             idleTimer.ResetTimer();
-            screenInputZoneController.SetComponentActive(shouldDeactivateScreenInputZoneController);
+            screenInputZoneManager.SetComponentActive(shouldDeactivateInputZones);
         }
 
         public void Reset()
