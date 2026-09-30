@@ -5,6 +5,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.Events;
 #if ENABLE_INPUT_SYSTEM
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.Controls;
 #endif
 
 namespace GAToolkit
@@ -155,6 +156,25 @@ namespace GAToolkit
 
         private bool hasWarnedAboutEventSystem;
 
+        /// <summary>Sentinel for "no finger is being followed". Real touch ids are never negative.</summary>
+        private const int InvalidTouchId = -1;
+
+        // The last position any backend reported. Used to close out an interaction whose finger
+        // disappeared without a released frame, so a press can never hang open.
+        private Vector2 lastPointerPosition;
+
+        // Set while a touch or pen is driving the interaction. Desktop touchscreens also emit
+        // emulated mouse clicks, and this keeps that echo from being read as a second press.
+        private bool suppressMouseUntilRelease;
+
+#if ENABLE_INPUT_SYSTEM
+        private int activeTouchId = InvalidTouchId;
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        private int activeFingerId = InvalidTouchId;
+#endif
+
         #endregion
 
         #region Life Cycle
@@ -207,6 +227,13 @@ namespace GAToolkit
             {
                 IsInteracting = false;
                 wasPressed = false;
+                suppressMouseUntilRelease = false;
+#if ENABLE_INPUT_SYSTEM
+                activeTouchId = InvalidTouchId;
+#endif
+#if ENABLE_LEGACY_INPUT_MANAGER
+                activeFingerId = InvalidTouchId;
+#endif
             }
         }
 
@@ -422,45 +449,97 @@ namespace GAToolkit
         /// <summary>
         /// Reads the current pointer position and whether it is pressed, against whichever input
         /// backend the project has active (Project Settings > Player > Active Input Handling).
-        /// Supports Old, New, or Both.
+        /// Supports Old, New, or Both; when both are enabled the new backend is used.
+        ///
+        /// Whatever the backend, a single finger or button is followed from press to release: the
+        /// frame the pointer lifts is reported as "not pressed, at the position it lifted from",
+        /// never dropped and never swapped for another device's position. Update relies on seeing
+        /// that frame to end the interaction, so bailing out instead would leave a press open
+        /// forever and a Tap would never fire.
         /// </summary>
         private bool ReadPointer(out Vector2 position, out bool isPressed)
         {
 #if ENABLE_INPUT_SYSTEM
             Touchscreen touchscreen = Touchscreen.current;
-            if (touchscreen != null && touchscreen.primaryTouch.press.isPressed)
+
+            if (touchscreen != null)
             {
-                position = touchscreen.primaryTouch.position.ReadValue();
+                TouchControl touch = ResolveTouch(touchscreen);
+
+                if (touch != null)
+                {
+                    position = touch.position.ReadValue();
+                    isPressed = touch.press.isPressed;
+
+                    // Desktop touchscreens also drive the system mouse, and that emulated click can
+                    // arrive a frame after the finger lifts. Ignoring it until it goes up stops one
+                    // tap being reported twice.
+                    suppressMouseUntilRelease = true;
+                    lastPointerPosition = position;
+                    return true;
+                }
+            }
+
+            Pen pen = Pen.current;
+            if (pen != null && pen.press.isPressed)
+            {
+                position = pen.position.ReadValue();
                 isPressed = true;
+                suppressMouseUntilRelease = true;
+                lastPointerPosition = position;
                 return true;
             }
 
             Mouse mouse = Mouse.current;
             if (mouse != null)
             {
+                bool mouseDown = mouse.leftButton.isPressed ||
+                                 (respondToSecondaryButtons && (mouse.rightButton.isPressed || mouse.middleButton.isPressed));
+
+                if (!mouseDown)
+                {
+                    suppressMouseUntilRelease = false;
+                }
+
                 position = mouse.position.ReadValue();
-                isPressed = mouse.leftButton.isPressed ||
-                            (respondToSecondaryButtons && (mouse.rightButton.isPressed || mouse.middleButton.isPressed));
+                isPressed = mouseDown && !suppressMouseUntilRelease;
+                lastPointerPosition = position;
+                return true;
+            }
+
+            if (touchscreen != null || pen != null)
+            {
+                // A touch-only device between touches. Reporting the released state at the last
+                // known position is what lets the release frame above be followed by a clean idle
+                // state instead of a dropped frame.
+                position = lastPointerPosition;
+                isPressed = false;
                 return true;
             }
 #endif
 
 #if ENABLE_LEGACY_INPUT_MANAGER
-            if (Input.touchCount > 0)
+            if (Input.touchCount > 0 || activeFingerId != InvalidTouchId)
             {
-                UnityEngine.Touch touch = Input.GetTouch(0);
-                position = touch.position;
+                if (ResolveLegacyTouch(out position, out isPressed))
+                {
+                    suppressMouseUntilRelease = true;
+                    lastPointerPosition = position;
+                    return true;
+                }
+            }
 
-                // Qualified because UnityEngine.InputSystem also defines TouchPhase, and both
-                // namespaces are in scope when Active Input Handling is set to Both.
-                isPressed = touch.phase != UnityEngine.TouchPhase.Ended &&
-                            touch.phase != UnityEngine.TouchPhase.Canceled;
-                return true;
+            bool legacyMouseDown = Input.GetMouseButton(0) ||
+                                   (respondToSecondaryButtons && (Input.GetMouseButton(1) || Input.GetMouseButton(2)));
+
+            if (!legacyMouseDown)
+            {
+                suppressMouseUntilRelease = false;
             }
 
             position = Input.mousePosition;
-            isPressed = Input.GetMouseButton(0) ||
-                        (respondToSecondaryButtons && (Input.GetMouseButton(1) || Input.GetMouseButton(2)));
+            isPressed = legacyMouseDown && !suppressMouseUntilRelease;
+            lastPointerPosition = position;
             return true;
 #else
             position = default;
@@ -468,6 +547,109 @@ namespace GAToolkit
             return false;
 #endif
         }
+
+#if ENABLE_INPUT_SYSTEM
+        /// <summary>
+        /// Returns the touch this interaction is following, or null if no finger is down.
+        ///
+        /// The finger is tracked by touch id rather than by slot, because slots get reused: with
+        /// two fingers down, lifting the first slides the second into slot 0, and a slot-based
+        /// read would see a jump across the screen and call a tap a drag. The touch is still
+        /// returned on the frame it lifts, so the release is seen exactly once.
+        /// </summary>
+        private TouchControl ResolveTouch(Touchscreen touchscreen)
+        {
+            if (activeTouchId != InvalidTouchId)
+            {
+                foreach (TouchControl candidate in touchscreen.touches)
+                {
+                    if (candidate.touchId.ReadValue() != activeTouchId)
+                    {
+                        continue;
+                    }
+
+                    if (!candidate.press.isPressed)
+                    {
+                        activeTouchId = InvalidTouchId;
+                    }
+
+                    return candidate;
+                }
+
+                // The touch vanished without a released frame (device lost, focus change).
+                activeTouchId = InvalidTouchId;
+                return null;
+            }
+
+            foreach (TouchControl candidate in touchscreen.touches)
+            {
+                if (candidate.press.isPressed)
+                {
+                    activeTouchId = candidate.touchId.ReadValue();
+                    return candidate;
+                }
+            }
+
+            return null;
+        }
+#endif
+
+#if ENABLE_LEGACY_INPUT_MANAGER
+        /// <summary>
+        /// Legacy equivalent of <see cref="ResolveTouch"/>: follows one finger by fingerId and
+        /// reports the frame it lifts. Returns false when no finger is involved, so the caller can
+        /// fall through to the mouse.
+        /// </summary>
+        private bool ResolveLegacyTouch(out Vector2 position, out bool isPressed)
+        {
+            for (int i = 0; i < Input.touchCount; i++)
+            {
+                UnityEngine.Touch touch = Input.GetTouch(i);
+
+                // Qualified because UnityEngine.InputSystem also defines TouchPhase, and both
+                // namespaces are in scope when Active Input Handling is set to Both.
+                bool touchDown = touch.phase != UnityEngine.TouchPhase.Ended &&
+                                 touch.phase != UnityEngine.TouchPhase.Canceled;
+
+                if (activeFingerId == InvalidTouchId)
+                {
+                    if (!touchDown)
+                    {
+                        continue;
+                    }
+
+                    activeFingerId = touch.fingerId;
+                }
+                else if (touch.fingerId != activeFingerId)
+                {
+                    continue;
+                }
+
+                if (!touchDown)
+                {
+                    activeFingerId = InvalidTouchId;
+                }
+
+                position = touch.position;
+                isPressed = touchDown;
+                return true;
+            }
+
+            if (activeFingerId != InvalidTouchId)
+            {
+                // The finger disappeared without an Ended frame. Report one released frame at the
+                // last known position so the interaction closes instead of hanging open.
+                activeFingerId = InvalidTouchId;
+                position = lastPointerPosition;
+                isPressed = false;
+                return true;
+            }
+
+            position = default;
+            isPressed = false;
+            return false;
+        }
+#endif
 
         #endregion
     }
